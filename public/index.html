@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Address Validation Service</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="py-4 mb-4 border-bottom border-secondary border-opacity-25">
+    <div class="container text-center">
+      <h1 class="header-title display-5 mb-1"><i class="bi bi-geo-alt-fill me-2"></i>Global Address Validation</h1>
+      <p class="sub-title fs-5 mb-0">Verify and normalize international addresses with USPS, Canada Post & OpenStreetMap</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="row g-4">
+      
+      <!-- Input Panel -->
+      <section class="col-lg-6">
+        <div class="glass-panel p-4 h-100">
+          <h2 class="h4 mb-4 pb-2 border-bottom border-secondary border-opacity-25"><i class="bi bi-input-cursor-text me-2 text-indigo"></i>Address Details</h2>
+          
+          <form id="addressForm" novalidate>
+            <!-- Country Code Dropdown -->
+            <div class="mb-3">
+              <label for="countryCode" class="form-label">Country <span class="text-danger">*</span></label>
+              <select class="form-select" id="countryCode" required>
+                <option value="" disabled selected>Select country...</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="IN">India</option>
+              </select>
+              <div class="invalid-feedback" id="countryCodeError">Please select a country.</div>
+            </div>
+
+            <!-- Street Line 1 -->
+            <div class="mb-3">
+              <label for="streetLine1" class="form-label">Street Address Line 1 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="streetLine1" placeholder="e.g., 1600 Amphitheatre Pkwy" required maxlength="255">
+              <div class="invalid-feedback" id="streetLine1Error">Street line 1 is required.</div>
+            </div>
+
+            <!-- Street Line 2 -->
+            <div class="mb-3">
+              <label for="streetLine2" class="form-label">Street Address Line 2</label>
+              <input type="text" class="form-control" id="streetLine2" placeholder="e.g., Apt 4B, Suite 300" maxlength="255">
+            </div>
+
+            <div class="row">
+              <!-- City -->
+              <div class="col-md-6 mb-3">
+                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="city" placeholder="e.g., Mountain View" required maxlength="100">
+                <div class="invalid-feedback" id="cityError">City is required.</div>
+              </div>
+
+              <!-- State / Province -->
+              <div class="col-md-6 mb-3">
+                <label for="stateProvince" class="form-label">State / Province <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="stateProvince" placeholder="e.g., CA" required maxlength="100">
+                <div class="invalid-feedback" id="stateProvinceError">State/Province is required.</div>
+              </div>
+            </div>
+
+            <!-- Postal Code -->
+            <div class="mb-4">
+              <label for="postalCode" class="form-label">Postal / ZIP Code <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="postalCode" placeholder="e.g., 94043" required maxlength="20">
+              <div class="invalid-feedback" id="postalCodeError">Postal code is required.</div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-3">
+              <button type="button" id="btnValidate" class="btn btn-custom btn-custom-primary flex-grow-1">
+                <span class="spinner-border spinner-border-sm d-none" id="validateSpinner" role="status" aria-hidden="true"></span>
+                <i class="bi bi-shield-check" id="validateIcon"></i> Validate Address
+              </button>
+              <button type="button" id="btnSave" class="btn btn-custom btn-custom-success flex-grow-1" disabled>
+                <span class="spinner-border spinner-border-sm d-none" id="saveSpinner" role="status" aria-hidden="true"></span>
+                <i class="bi bi-floppy"></i> Save Address
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </section>
+
+      <!-- Results & History Panel -->
+      <section class="col-lg-6">
+        <div class="d-flex flex-column gap-4 h-100">
+          
+          <!-- Live Validation Result Card -->
+          <div class="glass-panel p-4">
+            <h2 class="h4 mb-3 pb-2 border-bottom border-secondary border-opacity-25"><i class="bi bi-activity me-2 text-indigo"></i>Validation Status</h2>
+            
+            <div id="validationResultPlaceholder" class="text-center py-4 text-muted">
+              <i class="bi bi-question-circle display-4 mb-2 d-block"></i>
+              <span>Enter address details and validate to view status.</span>
+            </div>
+
+            <div id="validationResultCard" class="card results-card p-3 d-none fade-in">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0" id="resultHeader">Address Validated</h3>
+                <span class="badge" id="resultStatusBadge">Valid</span>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label d-block text-secondary mb-1">Normalized Address</label>
+                <div class="fw-medium text-light" id="resultNormalizedAddress">1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA</div>
+              </div>
+
+              <div class="row mb-3 g-2">
+                <div class="col-6">
+                  <span class="text-secondary small d-block">Validated By</span>
+                  <span class="badge badge-service mt-1" id="resultValidatedBy">USPS</span>
+                </div>
+                <div class="col-6 text-end">
+                  <button class="btn btn-sm btn-outline-secondary py-1" type="button" data-bs-toggle="collapse" data-bs-target="#rawResponseCollapse">
+                    Toggle Raw JSON <i class="bi bi-chevron-down ms-1"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="collapse" id="rawResponseCollapse">
+                <pre class="json-viewer mt-2 text-start" id="resultRawResponse">{}</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Address History -->
+          <div class="glass-panel p-4 flex-grow-1">
+            <h2 class="h4 mb-3 pb-2 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-clock-history me-2 text-indigo"></i>Saved Addresses</span>
+              <span class="badge bg-secondary fs-6" id="historyCount">0</span>
+            </h2>
+
+            <div id="historyPlaceholder" class="text-center py-4 text-muted">
+              <i class="bi bi-folder2-open display-4 mb-2 d-block"></i>
+              <span>No saved addresses found.</span>
+            </div>
+
+            <div id="historyList" class="d-none" style="max-height: 380px; overflow-y: auto;">
+              <!-- Dynamic Address Items will be injected here -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Toast Container for alerts -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    
+    <!-- Success Toast -->
+    <div id="successToast" class="toast custom-toast text-light fade-in" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+      <div class="toast-header bg-transparent border-bottom border-secondary border-opacity-10 text-light d-flex align-items-center">
+        <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+        <strong class="me-auto">Operation Successful</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="successToastBody">
+        Action completed successfully.
+      </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="errorToast" class="toast custom-toast text-light" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+      <div class="toast-header bg-transparent border-bottom border-secondary border-opacity-10 text-light d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5 me-2"></i>
+        <strong class="me-auto">Operation Failed</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="errorToastBody">
+        An error occurred. Please try again.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Axios JS CDN -->
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <!-- Custom Logic JS -->
+  <script src="script.js"></script>
+</body>
+</html>
